@@ -1,0 +1,53 @@
+/*
+ * Body.h
+ *
+ *  Created on: 06.Ağu.2011
+ *      Author: burak
+ */
+
+#ifndef BODY_H_
+#define BODY_H_
+
+
+
+template <typename orient_parameters,typename Scalar>
+class Body{
+
+public:
+Body(void)
+{
+    m_parameters=orient_parameters();
+    m_pos=Vector(3,1);
+    m_vel=Vector(3,1);
+}
+Body(Scalar mass)
+{
+	m_parameters=orient_parameters();
+	m_mass=mass;
+	m_pos=Vector(3,1);
+    m_vel=Vector(3,1);
+}
+Body(Scalar mass,Vector& pos,Vector& vel,Scalar direction_cosines[3])
+{
+	m_parameters=orient_parameters(direction_cosines);
+	m_mass=mass;
+	m_pos=pos;
+    m_vel=vel;
+}
+//Variables
+Scalar m_mass;//mass of body coordinates of translation
+Vector m_pos;//position of reference point
+Vector m_vel;//velocity of reference point
+orient_parameters m_parameters;//body orientation coordinates
+Force<Scalar>* m_forcelst;//body external force list
+unsigned char m_is_fixed;//is body fixed on inertial frame??
+virtual Matrix GetMassMatrix(void);//Get mass matrix of current coordinate system (translation+orientation for "rigid" and translation+orientation+flexibility coordinates for "flexible body" )
+virtual Vector GetActivatorVec(void);//Get right hand side of equality of system
+
+
+private:
+
+};
+
+
+#endif /* BODY_H_ */

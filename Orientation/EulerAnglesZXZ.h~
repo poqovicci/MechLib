@@ -1,0 +1,144 @@
+/*
+ * EulerAngles.h
+ *
+ *  Created on: 06.Ağu.2011
+ *      Author: burak
+ */
+
+#ifndef EULERANGLES_H_
+#define EULERANGLES_H_
+
+
+
+
+template<typename Scalar> class EulerAnglesZXZ:public Orientation_parameters<Scalar,3>{
+   typedef Orientation_parameters<Scalar,3> param;
+   public:
+   EulerAnglesZXZ(void):param()
+   {
+	   unsigned char i=0;
+	   while(i<param::count-1)
+	   {
+		   param::parameters[i]=0;
+		   i++;
+	   }
+   }
+   EulerAnglesZXZ(Matrix& pos_trans):param()
+   {
+
+
+	   Eigen::Matrix<Scalar,2,2> mat_tosolve=Eigen::Matrix<Scalar,2,2>();
+	   Eigen::FullPivLU<Eigen::Matrix<Scalar,2,2> >m;
+
+	   Vector2 b;
+	   Scalar sinphi,cosphi,sintheta,costheta;
+	   param::parameters[1]=acos(pos_trans(2,2));//calculate theta
+
+	   sintheta=(sin(param::parameters[1]));
+       costheta=(cos(param::parameters[1]));
+
+
+       param::parameters[0]=acos(pos_trans(2,1)/sintheta);//calculate phi
+
+	   sinphi=(sin(param::parameters[0]));
+       cosphi=(cos(param::parameters[0]));
+
+       b(0)=pos_trans(0,0);
+       b(1)=pos_trans(0,1);
+       mat_tosolve(0,0)=cosphi;
+       mat_tosolve(0,1)=-costheta*sinphi;
+       mat_tosolve(1,0)=-costheta*sinphi;
+       mat_tosolve(1,1)=-cosphi;;
+
+       Vector2d vec=mat_tosolve.lu().solve(b);//solve
+       param::parameters[2]=asin(vec(1));
+
+   }
+   Matrix  GetPosTrans(void)  //Return position transformation matrix A  that is r=A(q).*u;
+   {
+	   Matrix temp(3,3);
+	   Scalar* parameters=param::parameters;
+	   Scalar phi=parameters[0],theta=parameters[1],psi=parameters[2];
+	   Scalar sinphi=sin(phi),cosphi=cos(phi),sintheta=sin(theta),costheta=cos(theta),sinpsi=sin(psi),cospsi=cos(psi);
+	   temp(0,0)=(cospsi*cosphi-costheta*sinphi*sinpsi);
+           temp(0,1)=(-sinpsi*cosphi-costheta*sinphi*cospsi);
+	   temp(0,2)=(sintheta*sinphi);
+	   temp(1,0)=(cospsi*sinphi+costheta*cosphi*sinpsi);
+	   temp(1,1)=(-sinpsi*sinphi+costheta*cosphi*cospsi);
+	   temp(1,2)=(-sintheta*cosphi);
+           temp(2,0)=sintheta*sinphi;
+           temp(2,1)=sintheta*cosphi;
+           temp(2,2)=costheta;
+           return temp;
+   }
+
+   Matrix  GetVTransLocal(void)//return velocity transformation matrix local_G that used in omega=G.*qdot;
+   {
+	   Matrix temp(3,3);
+	   Scalar parameters=param::parameters;
+	   Scalar phi=parameters[0],theta=parameters[1],psi=parameters[2];
+	   Scalar sinphi=sin(phi),cosphi=cos(phi),sintheta=sin(theta),costheta=cos(theta),sinpsi=sin(psi),cospsi=cos(psi);
+	   temp(0,0)=(sintheta*sinphi);
+           temp(0,1)=(cosphi);
+	   temp(0,2)=(0);
+	   temp(1,0)=(sintheta*cosphi);
+	   temp(1,1)=(-sinphi);
+	   temp(1,2)=(0);
+           temp(2,0)=costheta;
+           temp(2,1)=0;
+           temp(2,2)=1;
+           return temp;
+   }
+   Matrix  GetVTransGlobal(void)
+   {
+	   return GetPosTrans()*GetVTransLocal();
+
+   }
+   Matrix  GetVTransDotLocal(void)
+   {
+	   Matrix temp(3,3);
+	   Scalar parameters=param::parameters;
+	   Scalar parameters_v=param::parameters_v;
+	   Scalar theta=parameters[1],psi=parameters[2];
+	   Scalar sintheta=sin(theta),costheta=cos(theta),sinpsi=sin(psi),cospsi=cos(psi);
+	   Scalar thetadot=parameters_v[1],psidot=parameters_v[2];
+	   temp(0,0)=(thetadot*costheta*sinpsi+psidot*sintheta*cospsi);
+           temp(0,1)=(-psidot*sinpsi);
+	   temp(0,2)=(0);
+	   temp(1,0)=(thetadot*costheta*cospsi-psidot*sintheta*sinpsi);
+	   temp(1,1)=(-psidot*cospsi);
+	   temp(1,2)=(0);
+           temp(2,0)=-thetadot*sintheta;
+           temp(2,1)=0;
+           temp(2,2)=0;
+           return temp;
+   }
+   Matrix  GetVTransDot(void)
+   {
+	   Matrix temp(3,3);
+	   Scalar parameters=param::parameters;
+	   Scalar parameters_v=param::parameters_v;
+	   Scalar phi=parameters[1],theta=parameters[1];
+	   Scalar sinphi=sin(phi),cosphi=cos(phi),sintheta=sin(theta),costheta=cos(theta);
+	   Scalar phidot=parameters_v[1],thetadot=parameters_v[1];
+	   temp(0,0)=(0);
+           temp(0,1)=(-phidot*sinphi);
+	   temp(0,2)=(thetadot*costheta*sinphi+phidot*sintheta*cosphi);
+	   temp(1,0)=(0);
+	   temp(1,1)=(phidot*cosphi);
+	   temp(1,2)=(-thetadot*costheta*cosphi+phidot*sintheta*sinphi);
+       temp(2,0)=0;
+       temp(2,1)=0;
+       temp(2,2)=-thetadot*sintheta;
+       return temp;
+   }
+
+
+};
+
+
+
+
+
+
+#endif /* EULERANGLES_H_ */

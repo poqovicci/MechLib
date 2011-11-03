@@ -1,0 +1,30 @@
+/*
+ * parameters.h
+ *
+ *  Created on: 03.Ağu.2011
+ *      Author: burak
+ */
+
+#ifndef ORIENT_PARAMETERS_H_
+#define ORIENT_PARAMETERS_H_
+
+
+
+
+template<typename Scalar,unsigned char paramcount> class Orientation_parameters{
+
+    public:
+	Orientation_parameters(void):count(paramcount)
+        {
+           count=paramcount;
+        }
+	Scalar parameters[paramcount];//parameters' list
+	Scalar parameters_v[paramcount];//parameters' time differentiation list
+        unsigned char count;//parameters count
+};
+
+
+
+
+
+#endif /* ORIENT_PARAMETERS_H_ */
